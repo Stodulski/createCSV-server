@@ -9,6 +9,7 @@ const {
 const path = require("path");
 const fs = require("fs").promises;
 const File = require("../model/file.js");
+const { parse } = require("json2csv");
 
 const { createObjectCsvWriter } = require("csv-writer");
 
@@ -55,11 +56,19 @@ const createNewCsv = async (req, res) => {
             Type: product.productCategory,
             Published: product.productStock,
         }));
+        const csv = parse(newCsv);
+        const date = getFormattedDateTime();
+        const filename = `${date}.csv`;
 
-        await csvWriter.writeRecords(newCsv);
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${filename}"`
+        );
         res.status(200).json({
             text: "CSV created",
-            name: csvWriter.fileWriter.path,
+            name: filename,
+            csv,
         });
         await saveCsvInDataBase(csvWriter.fileWriter.path, newCsv);
     } catch (err) {
@@ -68,14 +77,25 @@ const createNewCsv = async (req, res) => {
     }
 };
 
-const downloadFile = (req, res) => {
+const downloadFile = async (req, res) => {
     const file = req.params.file;
-    const fileRoute = path.join(__dirname, `../../${file}`);
-    res.download(fileRoute, (err) => {
-        if (err) {
-            res.status(404).json({ text: "File not found" });
-        }
-    });
+    const response = await File.findById(file);
+    const newCsv = response.content.map((product) => ({
+        Handle: product.Handle,
+        Title: product.Title,
+        Vendor: product.Vendor,
+        SKU: product.SKU,
+        PricePen: product.PricePen,
+        PriceUsd: product.PriceUsd,
+        Image: product.Image,
+        Body: product.Body,
+        Tags: product.Tags,
+        Type: product.Category,
+        Published: product.Stock,
+    }));
+    const csv = parse(newCsv);
+    console.log(csv);
+    res.json({ name: response.name, csv });
 };
 
 const getCsv = async (req, res) => {
@@ -86,11 +106,6 @@ const deleteCsv = async (req, res) => {
     try {
         const id = req.query.id;
         const result = await File.findByIdAndDelete(id);
-        await fs.access(
-            path.join(__dirname, `../../${result.name}`),
-            fs.constants.F_OK
-        );
-        await fs.unlink(path.join(__dirname, `../../${result.name}`));
         res.status(200).json({ text: "Deleting..." });
     } catch (error) {
         res.status(404).json({ text: "Error when deleting" });

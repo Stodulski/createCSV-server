@@ -5,6 +5,6 @@ const { createNewCsv, downloadFile, getCsv, deleteCsv } = require("../controller
 router.post("/csv/new", createNewCsv);
 router.get("/csv/get", getCsv);
 router.delete("/csv/delete", deleteCsv);
-router.get("/files/:file", downloadFile);
+router.get("/:file", downloadFile);
 
 module.exports = router;
