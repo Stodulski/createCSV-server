@@ -26,7 +26,7 @@ const createNewCsv = async (req, res) => {
 
         let productName = getFormattedDateTime();
         const csvWriter = createObjectCsvWriter({
-            path: path.join(__dirname, `files/${productName}.csv`),
+            path: `${productName}.csv`,
             header: [
                 { id: "Handle", title: "Handle" },
                 { id: "Title", title: "Title" },
@@ -70,7 +70,7 @@ const createNewCsv = async (req, res) => {
 
 const downloadFile = (req, res) => {
     const file = req.params.file;
-    const fileRoute = path.join(__dirname, "../../files", file);
+    const fileRoute = path.join(__dirname, `../../${file}`);
     res.download(fileRoute, (err) => {
         if (err) {
             res.status(404).json({ text: "File not found" });

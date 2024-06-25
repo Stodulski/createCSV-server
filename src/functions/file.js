@@ -104,23 +104,6 @@ const scrapeProductInfo = async (urls, usdToPenRate, cleanUrl) => {
     }
 };
 
-async function autoScroll(page) {
-    await page.evaluate(async () => {
-        await new Promise((resolve, reject) => {
-            let totalHeight = 0;
-            const distance = 1000;
-            const timer = setInterval(() => {
-                const scrollHeight = root.body.scrollHeight;
-                window.scrollBy(0, distance);
-                totalHeight += distance;
-                if (totalHeight >= scrollHeight) {
-                    clearInterval(timer);
-                    resolve();
-                }
-            }, 50);
-        });
-    });
-}
 function getFormattedDateTime() {
     let now = new Date();
     let day = now.getDate();
