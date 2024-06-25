@@ -15,13 +15,12 @@ const { verifyToken } = require("./controller/user.js");
 const corsOptions = {
     origin: "https://create-csv-client.vercel.app",
     methods: ["GET", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan({ format: "dev" }));
 
 app.use((req, res, next) => {
     if (req.path === "/login" || req.path === "/csv/new") {
