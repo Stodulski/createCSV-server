@@ -1,8 +1,7 @@
 const axios = require("axios");
 const { parse } = require("node-html-parser");
 const File = require("../model/file");
-const chromium = require("@sparticuz/chromium-min");
-const puppeteer = require("puppeteer-core");
+
 
 const getUrls = async (url) => {
     try {
@@ -20,103 +19,88 @@ const getUrls = async (url) => {
 };
 
 const scrapeProductInfo = async (urls, usdToPenRate, cleanUrl) => {
-    const browser = await puppeteer.launch({
-        args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chromium.defaultViewport,
-        executablePath: process.env.CHROME_BIN,
-        headless: chromium.headless,
-        ignoreHTTPSErrors: true,
-    });
     const productCollection = [];
     try {
         for (let url of urls) {
-            const page = await browser.newPage();
             try {
-                await page.goto(cleanUrl.origin + url, {
-                    waitUntil: "domcontentloaded",
-                });
-                await autoScroll(page);
-                const productInfo = await page.evaluate(() => {
-                    const convertToHTMLList = (description) => {
-                        const lines = description.split("\n");
-                        let html = "<ul>";
-                        lines.forEach((line) => {
-                            html += `<li>${line}</li>`;
-                        });
-                        html += "</ul>";
-                        return html;
-                    };
+                const response = await axios.get(cleanUrl.origin + url);
+                const html = response.data;
+                const root = parse(html);
 
-                    const productBrand =
-                        document.querySelector('span[itemprop="name"]')
-                            ?.innerText || "";
-                    const productSku =
-                        document.querySelector('span[itemprop="sku"]')
-                            ?.innerText || "";
-                    const oldPrice = parseFloat(
-                        document
-                            .querySelector('span[itemprop="price"]')
-                            ?.getAttribute("content") || "0"
-                    );
-                    const productPriceUsd = parseFloat(
-                        (oldPrice * 1.4).toFixed(2)
-                    );
-                    const productTitle =
-                        document
-                            .querySelector('meta[itemprop="name"]')
-                            ?.getAttribute("content") || "";
-                    const productCategory =
-                        document
-                            .querySelector('meta[itemprop="category"]')
-                            ?.getAttribute("content") || "";
-                    const productImage =
-                        document
-                            .querySelector('img[itemprop="image"]')
-                            ?.getAttribute("src") || "";
-                    const productDescription = convertToHTMLList(
-                        document.querySelector('div[itemprop="description"]')
-                            ?.innerText || ""
-                    );
-                    const availability =
-                        document
-                            .querySelector('meta[itemprop="availability"]')
-                            ?.getAttribute("content")
-                            ?.indexOf("OutOfStock") > -1;
-                    const productStock = !availability;
-                    const productHandle = productTitle.replace(/ /g, "-");
-                    const productTags =
-                        document
-                            .querySelector('meta[name="keywords"]')
-                            ?.getAttribute("content") || "";
+                const convertToHTMLList = (description) => {
+                    const lines = description.split("\n");
+                    let html = "<ul>";
+                    lines.forEach((line) => {
+                        html += `<li>${line}</li>`;
+                    });
+                    html += "</ul>";
+                    return html;
+                };
 
-                    return {
-                        productHandle,
-                        productBrand,
-                        productCategory,
-                        productPriceUsd,
-                        productImage,
-                        productTitle,
-                        productSku,
-                        productDescription,
-                        productStock,
-                        productTags,
-                    };
-                });
+                const productBrand =
+                    root.querySelectorAll('span[itemprop="name"]')[0]
+                        ?.innerText || "";
+                const productSku =
+                    root.querySelectorAll('span[itemprop="sku"]')[0]
+                        ?.innerText || "";
+                const oldPrice = parseFloat(
+                    root
+                        .querySelectorAll('span[itemprop="price"]')[0]
+                        ?.getAttribute("content") || "0"
+                );
+                const productPriceUsd = parseFloat((oldPrice * 1.4).toFixed(2));
+                const productTitle =
+                    root
+                        .querySelectorAll('meta[itemprop="name"]')[0]
+                        ?.getAttribute("content") || "";
+                const productCategory =
+                    root
+                        .querySelectorAll('meta[itemprop="category"]')[0]
+                        ?.getAttribute("content") || "";
+                const productImage =
+                    root
+                        .querySelectorAll('img[itemprop="image"]')[0]
+                        ?.getAttribute("src") || "";
+                const productDescription = convertToHTMLList(
+                    root.querySelectorAll('div[itemprop="description"]')[0]
+                        ?.innerText || ""
+                );
+                const availability =
+                    root
+                        .querySelectorAll('meta[itemprop="availability"]')[0]
+                        ?.getAttribute("content")
+                        ?.indexOf("OutOfStock") > -1;
+                const productStock = !availability;
+                const productHandle = productTitle.replace(/ /g, "-");
+                const productTags =
+                    root
+                        .querySelectorAll('meta[name="keywords"]')[0]
+                        ?.getAttribute("content") || "";
+                const productInfo = {
+                    productHandle,
+                    productBrand,
+                    productCategory,
+                    productPriceUsd,
+                    productImage,
+                    productTitle,
+                    productSku,
+                    productDescription,
+                    productStock,
+                    productTags,
+                };
+
                 productInfo.productPricePen = parseFloat(
                     (productInfo.productPriceUsd * usdToPenRate).toFixed(2)
                 );
                 productCollection.push(productInfo);
             } catch (error) {
                 console.error(`Error al acceder a ${url}:`, error);
-            } finally {
-                await page.close();
             }
         }
         return productCollection;
     } catch (error) {
         console.error("Error en el scraping:", error);
     } finally {
-        await browser.close();
     }
 };
 
@@ -126,7 +110,7 @@ async function autoScroll(page) {
             let totalHeight = 0;
             const distance = 1000;
             const timer = setInterval(() => {
-                const scrollHeight = document.body.scrollHeight;
+                const scrollHeight = root.body.scrollHeight;
                 window.scrollBy(0, distance);
                 totalHeight += distance;
                 if (totalHeight >= scrollHeight) {
