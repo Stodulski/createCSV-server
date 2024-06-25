@@ -22,7 +22,6 @@ const createNewCsv = async (req, res) => {
         const usdToPenRate = await getPenRate();
 
         const urls = await getUrls(url);
-
         const data = await scrapeProductInfo(urls, usdToPenRate, cleanUrl);
 
         let productName = getFormattedDateTime();
