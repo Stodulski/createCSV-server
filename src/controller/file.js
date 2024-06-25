@@ -26,7 +26,7 @@ const createNewCsv = async (req, res) => {
 
         let productName = getFormattedDateTime();
         const csvWriter = createObjectCsvWriter({
-            path: path.join(__dirname, `../../files/${productName}.csv`),
+            path: path.join(__dirname, `files/${productName}.csv`),
             header: [
                 { id: "Handle", title: "Handle" },
                 { id: "Title", title: "Title" },
