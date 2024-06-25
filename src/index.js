@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const morgan = require("morgan");
+const helmet = require('helmet')
 const authRoute = require("./router/auth.js");
 const fileRoute = require("./router/file.js");
 
@@ -15,9 +15,10 @@ const { verifyToken } = require("./controller/user.js");
 const corsOptions = {
     origin: "https://create-csv-client.vercel.app",
     methods: ["GET", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
+    allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.use(helmet())
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
