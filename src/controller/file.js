@@ -24,46 +24,26 @@ const createNewCsv = async (req, res) => {
         const urls = await getUrls(url);
         const data = await scrapeProductInfo(urls, usdToPenRate, cleanUrl);
 
-        let productName = getFormattedDateTime();
-        const csvWriter = createObjectCsvWriter({
-            path: `${productName}.csv`,
-            header: [
-                { id: "Handle", title: "Handle" },
-                { id: "Title", title: "Title" },
-                { id: "Vendor", title: "Vendor" },
-                { id: "Tags", title: "Tags" },
-                { id: "Type", title: "Type" },
-                { id: "SKU", title: "SKU" },
-                { id: "PricePen", title: "Variant Price" },
-                { id: "PriceUsd", title: "Variant Price (USD)" },
-                { id: "Body", title: "Body (HTML)" },
-                { id: "Image", title: "Image Src" },
-                { id: "Published", title: "Published" },
-            ],
-        });
-
         const newCsv = data.map((product) => ({
             Handle: product.productHandle,
             Title: product.productTitle,
             Vendor: product.productBrand,
             SKU: product.productSku,
-            PricePen: product.productPricePen,
-            PriceUsd: product.productPriceUsd,
-            Image: product.productImage,
-            Body: product.productDescription,
+            "Variant Price": product.productPricePen,
+            "Variant Price (USD)": product.productPriceUsd,
+            "Image Src": product.productImage,
+            "Body (HTML)": product.productDescription,
             Tags: product.productTags,
             Type: product.productCategory,
             Published: product.productStock,
         }));
+
         const csv = parse(newCsv);
         const date = getFormattedDateTime();
         const filename = `${date}.csv`;
 
         res.setHeader("Content-Type", "text/csv");
-        res.setHeader(
-            "Content-Disposition",
-            `attachment; filename="${filename}"`
-        );
+
         res.status(200).json({
             text: "CSV created",
             name: filename,
@@ -84,10 +64,10 @@ const downloadFile = async (req, res) => {
         Title: product.Title,
         Vendor: product.Vendor,
         SKU: product.SKU,
-        PricePen: product.PricePen,
-        PriceUsd: product.PriceUsd,
-        Image: product.Image,
-        Body: product.Body,
+        "Variant Price": product.PricePen,
+        "Variant Price (USD)": product.PriceUsd,
+        "Image Src": product.Image,
+        "Body (HTML)": product.Body,
         Tags: product.Tags,
         Type: product.Category,
         Published: product.Stock,
