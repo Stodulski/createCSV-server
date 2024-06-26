@@ -20,7 +20,21 @@ const createNewCsv = async (req, res) => {
         const urls = await getUrls(url);
         const data = await scrapeProductInfo(urls, usdToPenRate, cleanUrl);
 
-        const newCsv = data.map((product) => ({
+        const csvToSave = data.map((product) => ({
+            Handle: product.productHandle,
+            Title: product.productTitle,
+            Vendor: product.productBrand,
+            SKU: product.productSku,
+            PricePen: parseFloat(product.productPricePen),
+            PriceUsd: parseFloat(product.productPriceUsd),
+            Image: product.productImage,
+            Body: product.productDescription,
+            Tags: product.productTags,
+            Type: product.productCategory,
+            Published: product.productStock,
+        }));
+
+        const csvToSend = data.map((product) => ({
             Handle: product.productHandle,
             Title: product.productTitle,
             Vendor: product.productBrand,
@@ -34,7 +48,7 @@ const createNewCsv = async (req, res) => {
             Published: product.productStock,
         }));
 
-        const csv = parse(newCsv);
+        const csv = parse(csvToSend);
         const date = getFormattedDateTime();
         const filename = `${date}.csv`;
 
@@ -45,7 +59,7 @@ const createNewCsv = async (req, res) => {
             name: filename,
             csv,
         });
-        await saveCsvInDataBase(filename, newCsv);
+        await saveCsvInDataBase(filename, csvToSave);
     } catch (err) {
         console.log(err);
         res.status(500).json({ text: "Error" });
@@ -65,9 +79,10 @@ const downloadFile = async (req, res) => {
         "Image Src": product.Image,
         "Body (HTML)": product.Body,
         Tags: product.Tags,
-        Type: product.Category,
-        Published: product.Stock,
+        Type: product.Type,
+        Published: product.Published,
     }));
+
     const csv = parse(newCsv);
     res.json({ name: response.name, csv });
 };
