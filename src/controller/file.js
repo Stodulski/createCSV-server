@@ -6,12 +6,8 @@ const {
     saveCsvInDataBase,
 } = require("../functions/file");
 
-const path = require("path");
-const fs = require("fs").promises;
 const File = require("../model/file.js");
 const { parse } = require("json2csv");
-
-const { createObjectCsvWriter } = require("csv-writer");
 
 const createNewCsv = async (req, res) => {
     try {
@@ -73,7 +69,6 @@ const downloadFile = async (req, res) => {
         Published: product.Stock,
     }));
     const csv = parse(newCsv);
-    console.log(csv);
     res.json({ name: response.name, csv });
 };
 
@@ -84,7 +79,7 @@ const getCsv = async (req, res) => {
 const deleteCsv = async (req, res) => {
     try {
         const id = req.query.id;
-        const result = await File.findByIdAndDelete(id);
+        await File.findByIdAndDelete(id);
         res.status(200).json({ text: "Deleting..." });
     } catch (error) {
         res.status(404).json({ text: "Error when deleting" });
