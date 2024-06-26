@@ -45,7 +45,7 @@ const createNewCsv = async (req, res) => {
             name: filename,
             csv,
         });
-        await saveCsvInDataBase(csvWriter.fileWriter.path, newCsv);
+        await saveCsvInDataBase(filename, newCsv);
     } catch (err) {
         console.log(err);
         res.status(500).json({ text: "Error" });
