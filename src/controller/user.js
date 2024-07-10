@@ -6,7 +6,7 @@ const verifyToken = (req, res, next) => {
     if (!token) {
         return res.redirect("/login");
     }
-    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    jwt.verify(token, "5ebe2294ecd0e0f08eab7690d2a6ee69", (err, decoded) => {
         if (err) {
             return res.redirect("/login");
         }
@@ -28,7 +28,7 @@ const login = async (req, res) => {
         }
         const token = jwt.sign(
             { id: user._id, username: user.username },
-            process.env.SECRET,
+            "5ebe2294ecd0e0f08eab7690d2a6ee69",
             { expiresIn: "24h" }
         );
         res.json({ token });
