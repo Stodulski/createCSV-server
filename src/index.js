@@ -12,12 +12,6 @@ const app = express();
 
 const { verifyToken } = require("./controller/user.js");
 
-const corsOptions = {
-    origin: "https://create-csv-client.vercel.app",
-    methods: ["GET", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-};
-
 app.use(cors());
 app.use(helmet())
 app.use(express.json());
