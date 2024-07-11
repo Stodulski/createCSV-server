@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const uri = "mongodb+srv://admin:w79F6UhQqKWGAc8@cluster0.tknnieb.mongodb.net/csv";
+const uri = process.env.DB;
 
 mongoose
     .connect(uri, {
